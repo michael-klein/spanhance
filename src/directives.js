@@ -1,6 +1,7 @@
 import jsep from "../web_modules/jsep.js";
 import { evaluate } from "./expressions.js";
 import { state } from "./state.js";
+import { schedule } from "./scheduler.js";
 
 const DIRECTIVES = Symbol.for("directive");
 window[DIRECTIVES] = {};
@@ -57,7 +58,9 @@ function reEvaluateExpressions() {
 }
 
 state.on(() => {
-  reEvaluateExpressions();
+  schedule(() => {
+    reEvaluateExpressions();
+  });
 });
 
 const mountedDirectives = new Map();
@@ -104,12 +107,22 @@ createDirective("bind-value", function*(node, path) {
   let object;
   let key;
   if (path.includes(".")) {
+    const arr = path.split(".");
+    key = arr.pop();
+    object = state;
+    while (arr.length > 0) {
+      const subKey = arr.shift();
+      if (!object[subKey]) {
+        object[subKey] = {};
+      }
+      object = object[subKey];
+    }
   } else {
     object = state;
     key = path;
   }
-  let currentValue = object[key];
-  const off = object.on(() => {
+  let currentValue = object && object[key];
+  const off = state.on(() => {
     if (document.body.contains(node)) {
       if (currentValue !== object[key]) {
         currentValue = object[key];
@@ -139,7 +152,6 @@ createDirective("text", function(node, value) {
 const observer = new MutationObserver(function(mutations) {
   mutations.forEach(function(mutation) {
     if (mutation.type === "attributes") {
-      console.log(mutation.attributeName);
       const attributeName = mutation.attributeName;
       const directive = window[DIRECTIVES][attributeName.replace("data-", "")];
       if (directive && document.body.contains(mutation.target)) {

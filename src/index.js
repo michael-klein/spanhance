@@ -7,6 +7,7 @@ import {
 import { render } from "./render.js";
 import { onLocationChanged, changeLocation } from "./routing.js";
 import { mountDirectives } from "./directives.js";
+export { state } from "./state.js";
 export { createDirective } from "./directives.js";
 
 let linkData = {};
@@ -24,6 +25,11 @@ function handleLinks() {
   });
 }
 
+const onBeforeLocationChangeListeners = [];
+export function onBeforeLocationChange(callback) {
+  onBeforeLocationChangeListeners.push(callback);
+}
+
 export function start() {
   documentReady(() => {
     removeEmptyTextNodes(document.body);
@@ -31,6 +37,8 @@ export function start() {
     onLocationChanged(() => {
       const url = window.location.href;
       return linkData[url].then(async ({ htmlResult, title }) => {
+        onBeforeLocationChangeListeners.forEach(callback => callback());
+        onBeforeLocationChangeListeners.length = 0;
         if (url === window.location.href) {
           document.title = title;
           await render(document.body, htmlResult);
