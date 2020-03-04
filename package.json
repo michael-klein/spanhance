@@ -1,0 +1,32 @@
+{
+  "name": "spanhance",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "module": "dist/index.min.js",
+  "scripts": {
+    "install": "npx snowpack",
+    "serve": "npx servor --reload .",
+    "build": "npx rollup -c && npx google-closure-compiler --js=dist/index.js --js_output_file=dist/index.min.js --compilation_level=ADVANCED --warning_level=QUIET",
+    "prepublish": "npm run build"
+  },
+  "author": "Michael Klein",
+  "license": "ISC",
+  "dependencies": {
+    "htm": "^3.0.3",
+    "incremental-dom": "^0.7.0",
+    "jsep": "^0.3.4"
+  },
+  "devDependencies": {
+    "google-closure-compiler": "^20200224.0.0",
+    "rollup": "^1.31.1",
+    "servor": "^3.2.0",
+    "snowpack": "^1.2.0"
+  },
+  "snowpack": {
+    "webDependencies": [
+      "htm",
+      "incremental-dom",
+      "jsep"
+    ]
+  }
+}
